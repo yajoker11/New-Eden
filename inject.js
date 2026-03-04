@@ -72,3 +72,8 @@
     setTimeout(() => pushToFrame(getVariables()), 300);
   });
 })();
+// 监听 ST 切换角色/关闭聊天，自动清理 iframe
+document.addEventListener('sillytavern:chat:changed', () => {
+  const old = document.getElementById(IFRAME_ID);
+  if (old) old.remove();
+});
