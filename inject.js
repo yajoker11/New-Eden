@@ -1,79 +1,71 @@
-// inject.js — 注入 iframe 并桥接 MVU 变量
 (function () {
   const PANEL_URL = 'https://yajoker11.github.io/New-Eden/';
   const IFRAME_ID = 'eden-status-iframe';
 
-  // 防止重复注入
-  if (document.getElementById(IFRAME_ID)) return;
+  function mount() {
+    if (document.getElementById(IFRAME_ID)) return;
 
-  /* ── 创建 iframe ── */
-  const iframe = document.createElement('iframe');
-  iframe.id = IFRAME_ID;
-  iframe.src = PANEL_URL;
-  iframe.allow = '';
-  iframe.setAttribute('aria-hidden', 'true');
-  Object.assign(iframe.style, {
-    position: 'fixed',
-    right: '0',
-    bottom: '0',
-    width: '480px',   // 足够容纳面板+按钮
-    height: '100vh',
-    border: 'none',
-    background: 'transparent',
-    zIndex: '2147482999',
-    pointerEvents: 'none',   // 默认穿透，按钮区域由 iframe 内部自己处理
-  });
-  // 允许 iframe 内部点击事件穿透到按钮
-  iframe.addEventListener('load', () => {
-    iframe.style.pointerEvents = 'auto';
-  });
-  document.body.appendChild(iframe);
+    const iframe = document.createElement('iframe');
+    iframe.id = IFRAME_ID;
+    iframe.src = PANEL_URL;
+    iframe.setAttribute('aria-hidden', 'true');
+    Object.assign(iframe.style, {
+      position: 'fixed',
+      right: '0',
+      bottom: '0',
+      width: '480px',
+      height: '500px',
+      border: 'none',
+      background: 'transparent',
+      zIndex: '2147482999',
+      pointerEvents: 'none',
+    });
+    iframe.addEventListener('load', () => {
+      iframe.style.pointerEvents = 'auto';
+      setTimeout(() => pushToFrame(getVariables()), 300);
+    });
+    document.body.appendChild(iframe);
+    console.log('[Eden] iframe 已注入');
+  }
 
-  /* ── 读取 MVU 当前变量 ── */
   function getVariables() {
     try {
-      // ST 标准 API
       const ctx = window.SillyTavern?.getContext?.();
-      if (ctx?.chatMetadata?.variables) {
-        return ctx.chatMetadata.variables;
-      }
+      if (ctx?.chatMetadata?.variables) return ctx.chatMetadata.variables;
     } catch (_) {}
     return null;
   }
 
-  /* ── 推送数据给 iframe ── */
   function pushToFrame(vars) {
-    if (!vars) return;
+    const iframe = document.getElementById(IFRAME_ID);
+    if (!vars || !iframe) return;
     iframe.contentWindow?.postMessage(
       { type: 'eden_status_update', payload: vars },
       'https://yajoker11.github.io'
     );
   }
 
-  /* ── 监听 MVU 的变量更新事件 ── */
-  // MVU 在处理完变量后会触发这个自定义事件
+  // 监听 MVU 变量更新
   document.addEventListener('mvu:variables-updated', (e) => {
-    const vars = e.detail ?? getVariables();
-    pushToFrame(vars);
+    pushToFrame(e.detail ?? getVariables());
   });
 
-  // 兼容：ST 渲染新消息后也尝试同步一次
+  // ST 渲染新消息后同步
   document.addEventListener('sillytavern:chat:rendered', () => {
     pushToFrame(getVariables());
   });
 
-  // 兼容：消息流式输出完成
-  document.addEventListener('generation_ended', () => {
-    pushToFrame(getVariables());
+  // 切换聊天时清理旧 iframe 并重新注入
+  document.addEventListener('sillytavern:chat:changed', () => {
+    const old = document.getElementById(IFRAME_ID);
+    if (old) old.remove();
+    setTimeout(mount, 500);
   });
 
-  // 兜底：iframe 加载完成后推送一次当前数据
-  iframe.addEventListener('load', () => {
-    setTimeout(() => pushToFrame(getVariables()), 300);
-  });
+  // 主入口：等 body 就绪后挂载
+  if (document.body) {
+    mount();
+  } else {
+    document.addEventListener('DOMContentLoaded', mount);
+  }
 })();
-// 监听 ST 切换角色/关闭聊天，自动清理 iframe
-document.addEventListener('sillytavern:chat:changed', () => {
-  const old = document.getElementById(IFRAME_ID);
-  if (old) old.remove();
-});
