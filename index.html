@@ -25,6 +25,7 @@
           system-ui,
           -apple-system,
           sans-serif;
+        pointer-events: none;
       }
       #eden-fab {
         position: fixed;
@@ -35,6 +36,7 @@
         flex-direction: column;
         gap: 12px;
         align-items: flex-end;
+        pointer-events: auto;
       }
       .eden-btn {
         width: 52px;
@@ -69,6 +71,7 @@
         backdrop-filter: blur(10px);
         display: none;
         z-index: 2147483000;
+        pointer-events: auto;
       }
       #eden-panel header {
         display: flex;
@@ -208,14 +211,14 @@
             const card = document.createElement('div');
             card.className = 'role-card';
             card.innerHTML = `
-        <div class="role-head">
-          <span>${name}</span>
-          <span class="badge">${info.当前状态 || '未知'}</span>
-        </div>
-        <div class="row">异常指数 ${info.异常指数 ?? '-'} · 理智值 ${info.理智值 ?? '-'} · 好感度 ${info.好感度 ?? '-'}</div>
-        <div class="row">神色：${info.画面切片?.神色 || '-'} | 姿势：${info.画面切片?.服装姿势 || '-'}</div>
-        <div class="row">体征：${info.画面切片?.身体状况简述 || '-'}</div>
-      `;
+              <div class="role-head">
+                <span>${name}</span>
+                <span class="badge">${info.当前状态 || '未知'}</span>
+              </div>
+              <div class="row">异常指数 ${info.异常指数 ?? '-'} · 理智值 ${info.理智值 ?? '-'} · 好感度 ${info.好感度 ?? '-'}</div>
+              <div class="row">神色：${info.画面切片?.神色 || '-'} | 姿势：${info.画面切片?.服装姿势 || '-'}</div>
+              <div class="row">体征：${info.画面切片?.身体状况简述 || '-'}</div>
+            `;
             rolesEl.appendChild(card);
           });
         }
@@ -245,7 +248,6 @@
           }
         });
 
-        // 初始占位
         setSync('offline');
         applyData({
           世界: { 当前时间: '早晨', 当前地点: '别墅客厅' },
