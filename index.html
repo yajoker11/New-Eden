@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>新伊甸·状态栏</title>
+    <style>
+      :root {
+        --eden-primary: #6de0c7;
+        --eden-bg: rgba(17, 24, 39, 0.92);
+        --eden-card: rgba(31, 41, 55, 0.9);
+        --eden-border: rgba(255, 255, 255, 0.08);
+        --eden-text: #e5e7eb;
+        --eden-sub: #9ca3af;
+        --shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family:
+          'Inter',
+          'PingFang SC',
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      #eden-fab {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 2147483000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-end;
+      }
+      .eden-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid var(--eden-border);
+        background: radial-gradient(circle at 30% 30%, #7ef0d5, #37c6a0 60%, #1f2937 100%);
+        color: #0b1f18;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .eden-btn:hover {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.4);
+      }
+      #eden-panel {
+        position: fixed;
+        right: 88px;
+        bottom: 20px;
+        width: 360px;
+        max-height: 70vh;
+        background: var(--eden-bg);
+        border: 1px solid var(--eden-border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        color: var(--eden-text);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        display: none;
+        z-index: 2147483000;
+      }
+      #eden-panel header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--eden-border);
+      }
+      #eden-panel header h3 {
+        margin: 0;
+        font-size: 15px;
+        letter-spacing: 0.5px;
+      }
+      #eden-close {
+        border: none;
+        background: transparent;
+        color: var(--eden-sub);
+        cursor: pointer;
+        font-size: 16px;
+      }
+      #eden-panel .section {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--eden-border);
+      }
+      #eden-panel .section:last-child {
+        border-bottom: none;
+      }
+      .section-title {
+        font-size: 13px;
+        color: var(--eden-sub);
+        margin-bottom: 8px;
+        letter-spacing: 0.2px;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+        font-size: 13px;
+      }
+      .stat-grid .label {
+        color: var(--eden-sub);
+      }
+      .role-card {
+        background: var(--eden-card);
+        border: 1px solid var(--eden-border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+      }
+      .role-card:last-child {
+        margin-bottom: 0;
+      }
+      .role-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .badge {
+        font-size: 11px;
+        color: #0b1f18;
+        background: var(--eden-primary);
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+      .pill {
+        font-size: 11px;
+        color: var(--eden-text);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--eden-border);
+        border-radius: 999px;
+        padding: 2px 6px;
+        margin-right: 6px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--eden-sub);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="eden-fab">
+      <button class="eden-btn" id="eden-toggle" title="新伊甸状态">状</button>
+    </div>
+    <div id="eden-panel" aria-label="新伊甸状态栏">
+      <header>
+        <h3>调和监察 · 状态</h3>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <span id="eden-sync" class="pill">离线</span>
+          <button id="eden-close" aria-label="关闭">✕</button>
+        </div>
+      </header>
+      <div class="section">
+        <div class="section-title">世界</div>
+        <div class="stat-grid">
+          <div class="label">时间</div>
+          <div id="world-time">-</div>
+          <div class="label">地点</div>
+          <div id="world-loc">-</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">看护档案</div>
+        <div id="roles"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const panel = document.getElementById('eden-panel');
+        const toggle = document.getElementById('eden-toggle');
+        const closeBtn = document.getElementById('eden-close');
+        const syncBadge = document.getElementById('eden-sync');
+        const worldTime = document.getElementById('world-time');
+        const worldLoc = document.getElementById('world-loc');
+        const rolesEl = document.getElementById('roles');
+
+        function setSync(state) {
+          syncBadge.textContent = state === 'online' ? '实时' : '离线';
+          syncBadge.style.background = state === 'online' ? '#6de0c7' : 'rgba(255,255,255,0.06)';
+          syncBadge.style.color = state === 'online' ? '#0b1f18' : '#e5e7eb';
+        }
+
+        function renderRoles(data) {
+          rolesEl.innerHTML = '';
+          const entries = Object.entries(data || {});
+          if (!entries.length) {
+            rolesEl.innerHTML = '<div class="row">暂无收容角色</div>';
+            return;
+          }
+          entries.forEach(([name, info]) => {
+            const card = document.createElement('div');
+            card.className = 'role-card';
+            card.innerHTML = `
+        <div class="role-head">
+          <span>${name}</span>
+          <span class="badge">${info.当前状态 || '未知'}</span>
+        </div>
+        <div class="row">异常指数 ${info.异常指数 ?? '-'} · 理智值 ${info.理智值 ?? '-'} · 好感度 ${info.好感度 ?? '-'}</div>
+        <div class="row">神色：${info.画面切片?.神色 || '-'} | 姿势：${info.画面切片?.服装姿势 || '-'}</div>
+        <div class="row">体征：${info.画面切片?.身体状况简述 || '-'}</div>
+      `;
+            rolesEl.appendChild(card);
+          });
+        }
+
+        function applyData(payload) {
+          if (payload.世界) {
+            if (payload.世界.当前时间) worldTime.textContent = payload.世界.当前时间;
+            if (payload.世界.当前地点) worldLoc.textContent = payload.世界.当前地点;
+          }
+          if (payload.系统?.看护档案) {
+            renderRoles(payload.系统.看护档案);
+          }
+          setSync('online');
+        }
+
+        toggle.addEventListener('click', () => {
+          panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+        closeBtn.addEventListener('click', () => {
+          panel.style.display = 'none';
+        });
+
+        window.addEventListener('message', ev => {
+          if (!ev.data) return;
+          if (ev.data.type === 'eden_status_update') {
+            applyData(ev.data.payload || {});
+          }
+        });
+
+        // 初始占位
+        setSync('offline');
+        applyData({
+          世界: { 当前时间: '早晨', 当前地点: '别墅客厅' },
+          系统: { 看护档案: {} },
+        });
+      })();
+    </script>
+  </body>
+</html>
