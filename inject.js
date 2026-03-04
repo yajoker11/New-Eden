@@ -1,4 +1,11 @@
-(function () {
+(function () { if (window !== window.parent) {
+    const s = window.parent.document.createElement('script');
+    s.type = 'module';
+    s.src = 'https://yajoker11.github.io/New-Eden/inject.js?t=' + Date.now();
+    window.parent.document.head.appendChild(s);
+    return;
+  }
+  const PANEL_URL = 'https://yajoker11.github.io/New-Eden/';
   const PANEL_URL = 'https://yajoker11.github.io/New-Eden/';
   const IFRAME_ID = 'eden-status-iframe';
 
