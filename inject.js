@@ -1,11 +1,12 @@
-(function () { if (window !== window.parent) {
+(function () {
+  if (window !== window.parent) {
     const s = window.parent.document.createElement('script');
     s.type = 'module';
     s.src = 'https://yajoker11.github.io/New-Eden/inject.js?t=' + Date.now();
     window.parent.document.head.appendChild(s);
     return;
   }
-  const PANEL_URL = 'https://yajoker11.github.io/New-Eden/';
+
   const PANEL_URL = 'https://yajoker11.github.io/New-Eden/';
   const IFRAME_ID = 'eden-status-iframe';
 
@@ -52,24 +53,20 @@
     );
   }
 
-  // 监听 MVU 变量更新
   document.addEventListener('mvu:variables-updated', (e) => {
     pushToFrame(e.detail ?? getVariables());
   });
 
-  // ST 渲染新消息后同步
   document.addEventListener('sillytavern:chat:rendered', () => {
     pushToFrame(getVariables());
   });
 
-  // 切换聊天时清理旧 iframe 并重新注入
   document.addEventListener('sillytavern:chat:changed', () => {
     const old = document.getElementById(IFRAME_ID);
     if (old) old.remove();
     setTimeout(mount, 500);
   });
 
-  // 主入口：等 body 就绪后挂载
   if (document.body) {
     mount();
   } else {
