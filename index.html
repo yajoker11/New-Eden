@@ -2,257 +2,338 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>新伊甸·状态栏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Eden 状态栏</title>
     <style>
       :root {
-        --eden-primary: #6de0c7;
-        --eden-bg: rgba(17, 24, 39, 0.92);
-        --eden-card: rgba(31, 41, 55, 0.9);
-        --eden-border: rgba(255, 255, 255, 0.08);
-        --eden-text: #e5e7eb;
-        --eden-sub: #9ca3af;
-        --shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
+        --brand: #5de4c7;
+        --brand-strong: #2fb59a;
+        --bg: rgba(16, 21, 31, 0.86);
+        --card: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #e9f2ff;
+        --muted: #94a3b8;
+        --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
       }
+
       * {
         box-sizing: border-box;
       }
+
       body {
         margin: 0;
-        padding: 0;
         font-family:
           'Inter',
-          'PingFang SC',
+          'Noto Sans SC',
           system-ui,
           -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
           sans-serif;
-        pointer-events: none;
+        color: var(--text);
+        background: transparent;
       }
-      #eden-fab {
+
+      .status-root {
         position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 2147483000;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-end;
-        pointer-events: auto;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
       }
-      .eden-btn {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        border: 1px solid var(--eden-border);
-        background: radial-gradient(circle at 30% 30%, #7ef0d5, #37c6a0 60%, #1f2937 100%);
-        color: #0b1f18;
+
+      .status-fab {
+        position: fixed;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+        color: #0b111a;
         font-weight: 700;
+        letter-spacing: 0.08em;
         cursor: pointer;
         box-shadow: var(--shadow);
         transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .eden-btn:hover {
-        transform: translateY(-1px) scale(1.02);
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.4);
-      }
-      #eden-panel {
-        position: fixed;
-        right: 88px;
-        bottom: 20px;
-        width: 360px;
-        max-height: 70vh;
-        background: var(--eden-bg);
-        border: 1px solid var(--eden-border);
-        border-radius: 14px;
-        box-shadow: var(--shadow);
-        color: var(--eden-text);
-        overflow: hidden;
-        backdrop-filter: blur(10px);
-        display: none;
-        z-index: 2147483000;
+          transform 160ms ease,
+          box-shadow 160ms ease;
         pointer-events: auto;
       }
-      #eden-panel header {
+
+      .status-fab:hover {
+        transform: translateY(-50%) scale(1.04);
+      }
+      .status-fab:active {
+        transform: translateY(-50%) scale(0.98);
+      }
+
+      .status-mini {
+        position: fixed;
+        right: 90px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
         display: flex;
+        gap: 10px;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--eden-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+        pointer-events: auto;
       }
-      #eden-panel header h3 {
-        margin: 0;
-        font-size: 15px;
-        letter-spacing: 0.5px;
-      }
-      #eden-close {
-        border: none;
-        background: transparent;
-        color: var(--eden-sub);
-        cursor: pointer;
-        font-size: 16px;
-      }
-      #eden-panel .section {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--eden-border);
-      }
-      #eden-panel .section:last-child {
-        border-bottom: none;
-      }
-      .section-title {
-        font-size: 13px;
-        color: var(--eden-sub);
-        margin-bottom: 8px;
-        letter-spacing: 0.2px;
-      }
-      .stat-grid {
+
+      .mini-item {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px 10px;
-        font-size: 13px;
+        gap: 4px;
       }
-      .stat-grid .label {
-        color: var(--eden-sub);
+      .mini-label {
+        font-size: 12px;
+        color: var(--muted);
       }
-      .role-card {
-        background: var(--eden-card);
-        border: 1px solid var(--eden-border);
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
+      .mini-value {
+        font-weight: 700;
+        font-size: 14px;
       }
-      .role-card:last-child {
-        margin-bottom: 0;
+
+      .panel {
+        position: fixed;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%) translateX(8px);
+        width: min(420px, 92vw);
+        max-height: 86vh;
+        border-radius: 18px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+        backdrop-filter: blur(10px);
       }
-      .role-head {
+
+      .panel.show {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(-50%) translateX(0);
+      }
+
+      .panel-header {
+        padding: 14px 16px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 6px;
-        font-weight: 600;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
       }
-      .badge {
-        font-size: 11px;
-        color: #0b1f18;
-        background: var(--eden-primary);
-        border-radius: 999px;
-        padding: 2px 8px;
+
+      .panel-title {
+        font-weight: 700;
+        letter-spacing: 0.04em;
       }
+
+      .close-btn {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        border-radius: 10px;
+        width: 36px;
+        height: 32px;
+        cursor: pointer;
+      }
+
+      .panel-body {
+        padding: 12px 16px 6px;
+        overflow: auto;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .metric-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+        position: relative;
+      }
+
+      .metric-title {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .metric-value {
+        font-size: 22px;
+        font-weight: 800;
+      }
+      .metric-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
       .pill {
-        font-size: 11px;
-        color: var(--eden-text);
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid var(--eden-border);
-        border-radius: 999px;
-        padding: 2px 6px;
-        margin-right: 6px;
-      }
-      .row {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(93, 228, 199, 0.15);
+        color: var(--brand);
         font-size: 12px;
-        color: var(--eden-sub);
-        margin-top: 4px;
+        border: 1px solid rgba(93, 228, 199, 0.25);
+        font-weight: 700;
+      }
+
+      .panel-footer {
+        padding: 10px 16px 14px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transition: opacity 160ms ease;
+        pointer-events: none;
+      }
+
+      .overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      @media (max-width: 640px) {
+        .status-fab {
+          right: 12px;
+          top: unset;
+          bottom: 18px;
+          transform: none;
+        }
+        .status-mini {
+          right: 12px;
+          left: 12px;
+          top: unset;
+          bottom: 84px;
+          transform: none;
+          flex-wrap: wrap;
+        }
+        .panel {
+          right: 12px;
+          left: 12px;
+          width: auto;
+          top: unset;
+          bottom: 12px;
+          transform: translateY(12px);
+          max-height: 70vh;
+        }
+        .panel.show {
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
   <body>
-    <div id="eden-fab">
-      <button class="eden-btn" id="eden-toggle" title="新伊甸状态">状</button>
-    </div>
-    <div id="eden-panel" aria-label="新伊甸状态栏">
-      <header>
-        <h3>调和监察 · 状态</h3>
-        <div style="display: flex; align-items: center; gap: 6px">
-          <span id="eden-sync" class="pill">离线</span>
-          <button id="eden-close" aria-label="关闭">✕</button>
+    <div class="status-root" id="status-root">
+      <button class="status-fab" id="status-fab" aria-label="打开状态栏">状态</button>
+      <div class="status-mini" id="status-mini"></div>
+      <div class="panel" id="status-panel" role="dialog" aria-modal="true">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-title">状态栏</div>
+          <button class="close-btn" id="close-btn" aria-label="关闭">×</button>
         </div>
-      </header>
-      <div class="section">
-        <div class="section-title">世界</div>
-        <div class="stat-grid">
-          <div class="label">时间</div>
-          <div id="world-time">-</div>
-          <div class="label">地点</div>
-          <div id="world-loc">-</div>
+        <div class="panel-body">
+          <div class="metric-grid" id="metric-grid"></div>
         </div>
+        <div class="panel-footer" id="panel-footer"></div>
       </div>
-      <div class="section">
-        <div class="section-title">看护档案</div>
-        <div id="roles"></div>
-      </div>
+      <div class="overlay" id="overlay"></div>
     </div>
 
     <script>
-      (function () {
-        const panel = document.getElementById('eden-panel');
-        const toggle = document.getElementById('eden-toggle');
-        const closeBtn = document.getElementById('eden-close');
-        const syncBadge = document.getElementById('eden-sync');
-        const worldTime = document.getElementById('world-time');
-        const worldLoc = document.getElementById('world-loc');
-        const rolesEl = document.getElementById('roles');
+      (() => {
+        const root = document.getElementById('status-root');
+        const fab = document.getElementById('status-fab');
+        const mini = document.getElementById('status-mini');
+        const panel = document.getElementById('status-panel');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-btn');
+        const grid = document.getElementById('metric-grid');
+        const footer = document.getElementById('panel-footer');
+        const title = document.getElementById('panel-title');
 
-        function setSync(state) {
-          syncBadge.textContent = state === 'online' ? '实时' : '离线';
-          syncBadge.style.background = state === 'online' ? '#6de0c7' : 'rgba(255,255,255,0.06)';
-          syncBadge.style.color = state === 'online' ? '#0b1f18' : '#e5e7eb';
-        }
+        const defaultData = {
+          title: '新伊甸 · 状态面板',
+          summary: '这是一个独立悬浮状态栏示例。按需修改数据即可部署到 GitHub Pages / jsDelivr。',
+          metrics: [
+            { label: '能量', value: '87%', desc: '维持正常活动的剩余能量。', pill: '稳定' },
+            { label: '同步率', value: '62%', desc: 'AI 与玩家视角的同步程度。', pill: '可提升' },
+            { label: '情绪热度', value: '41%', desc: '当前情绪波动幅度。', pill: '平稳' },
+            { label: '好感度', value: '72', desc: '对白娅的正向情绪评分。', pill: '+3 / 本轮' },
+            { label: '风险值', value: '18', desc: '潜在危险/暴露指标。', pill: '低' },
+            { label: '时间轴', value: '第 3 日 · 傍晚', desc: '场景时间节点。', pill: '叙事线 A' },
+          ],
+        };
 
-        function renderRoles(data) {
-          rolesEl.innerHTML = '';
-          const entries = Object.entries(data || {});
-          if (!entries.length) {
-            rolesEl.innerHTML = '<div class="row">暂无收容角色</div>';
-            return;
-          }
-          entries.forEach(([name, info]) => {
-            const card = document.createElement('div');
-            card.className = 'role-card';
-            card.innerHTML = `
-              <div class="role-head">
-                <span>${name}</span>
-                <span class="badge">${info.当前状态 || '未知'}</span>
-              </div>
-              <div class="row">异常指数 ${info.异常指数 ?? '-'} · 理智值 ${info.理智值 ?? '-'} · 好感度 ${info.好感度 ?? '-'}</div>
-              <div class="row">神色：${info.画面切片?.神色 || '-'} | 姿势：${info.画面切片?.服装姿势 || '-'}</div>
-              <div class="row">体征：${info.画面切片?.身体状况简述 || '-'}</div>
-            `;
-            rolesEl.appendChild(card);
-          });
-        }
+        const data = window.NewEdenStatusData || defaultData;
 
-        function applyData(payload) {
-          if (payload.世界) {
-            if (payload.世界.当前时间) worldTime.textContent = payload.世界.当前时间;
-            if (payload.世界.当前地点) worldLoc.textContent = payload.世界.当前地点;
-          }
-          if (payload.系统?.看护档案) {
-            renderRoles(payload.系统.看护档案);
-          }
-          setSync('online');
-        }
+        title.textContent = data.title || '状态栏';
+        footer.textContent = data.summary || '';
 
-        toggle.addEventListener('click', () => {
-          panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        const miniItems = (data.metrics || []).slice(0, 3).map(item => {
+          const div = document.createElement('div');
+          div.className = 'mini-item';
+          div.innerHTML = `
+          <span class="mini-label">${item.label}</span>
+          <span class="mini-value">${item.value}</span>
+        `;
+          return div;
         });
-        closeBtn.addEventListener('click', () => {
-          panel.style.display = 'none';
+        miniItems.forEach(el => mini.appendChild(el));
+
+        (data.metrics || []).forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'metric-card';
+          card.innerHTML = `
+          <div class="metric-title">${item.label}</div>
+          <div class="metric-value">${item.value}</div>
+          ${item.pill ? `<span class="pill">${item.pill}</span>` : ''}
+          ${item.desc ? `<div class="metric-desc">${item.desc}</div>` : ''}
+        `;
+          grid.appendChild(card);
         });
 
-        window.addEventListener('message', ev => {
-          if (!ev.data) return;
-          if (ev.data.type === 'eden_status_update') {
-            applyData(ev.data.payload || {});
-          }
-        });
+        const openPanel = () => {
+          panel.classList.add('show');
+          overlay.classList.add('show');
+          root.style.pointerEvents = 'auto';
+        };
 
-        setSync('offline');
-        applyData({
-          世界: { 当前时间: '早晨', 当前地点: '别墅客厅' },
-          系统: { 看护档案: {} },
-        });
+        const closePanel = () => {
+          panel.classList.remove('show');
+          overlay.classList.remove('show');
+        };
+
+        fab.addEventListener('click', openPanel);
+        closeBtn.addEventListener('click', closePanel);
+        overlay.addEventListener('click', closePanel);
       })();
     </script>
   </body>
